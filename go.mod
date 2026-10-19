@@ -3,13 +3,13 @@ module github.com/pelicanplatform/pelican
 // Unpublish Go package as we are not intended to allow users us import our packages for now
 retract [v1.0.0, v1.0.5]
 
-go 1.26.0
+go 1.26.2
 
 require (
 	github.com/JGLTechnologies/gin-rate-limit v1.5.4
 	github.com/PelicanPlatform/classad v0.0.5
 	github.com/RoaringBitmap/roaring v1.9.4
-	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
+	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b
 	github.com/aws/aws-sdk-go-v2 v1.41.3
 	github.com/aws/aws-sdk-go-v2/config v1.32.2
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.11
@@ -31,7 +31,7 @@ require (
 	github.com/gofrs/flock v0.12.1
 	github.com/google/go-p11-kit v0.4.0
 	github.com/gorilla/csrf v1.7.3
-	github.com/gorilla/websocket v1.5.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/grafana/regexp v0.0.0-20221122212121-6b5c0a4cb7fd
 	github.com/gwatts/gin-adapter v1.0.0
 	github.com/hashicorp/go-version v1.7.0
@@ -49,9 +49,10 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/xattr v0.4.12
 	github.com/pressly/goose/v3 v3.18.0
-	github.com/prometheus/client_golang v1.17.0
-	github.com/prometheus/common v0.44.0
+	github.com/prometheus/client_golang v1.24.1
+	github.com/prometheus/common v0.70.1
 	github.com/prometheus/prometheus v0.48.1
+	github.com/sci-ndp/pelican-client-protocol/stomp-server-go v0.0.0-20261019171026-7ab1fc117a6a
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/pflag v1.0.9
@@ -66,12 +67,12 @@ require (
 	github.com/zsais/go-gin-prometheus v0.1.0
 	go.uber.org/atomic v1.11.0
 	gocloud.dev v0.45.0
-	golang.org/x/crypto v0.46.0
-	golang.org/x/mod v0.30.0
-	golang.org/x/net v0.48.0
-	golang.org/x/oauth2 v0.34.0
-	golang.org/x/sys v0.40.0
-	golang.org/x/term v0.38.0
+	golang.org/x/crypto v0.54.0
+	golang.org/x/mod v0.37.0
+	golang.org/x/net v0.57.0
+	golang.org/x/oauth2 v0.36.0
+	golang.org/x/sys v0.47.0
+	golang.org/x/term v0.45.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.25.7
 	kernel.org/pub/linux/libs/security/libcap/cap v1.2.69
@@ -122,12 +123,12 @@ require (
 	github.com/dlclark/regexp2 v1.11.0 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.36.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.3.0 // indirect
-	github.com/glebarez/go-sqlite v1.21.2 // indirect
+	github.com/glebarez/go-sqlite v1.23.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
-	github.com/go-stomp/stomp/v3 v3.0.3 // indirect
+	github.com/go-stomp/stomp/v3 v3.1.5 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/gobuffalo/pop/v6 v6.1.1 // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/flatbuffers v25.2.10+incompatible // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
@@ -153,6 +154,7 @@ require (
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.15.3-0.20240618155329-98d742f6907a // indirect
+	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.2 // indirect
 	github.com/ory/go-acc v0.2.9-0.20230103102148-6b1c9a70dbbe // indirect
 	github.com/ory/go-convenience v0.1.0 // indirect
@@ -187,7 +189,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.40.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/tools v0.39.0 // indirect
+	golang.org/x/tools v0.47.0 // indirect
 	golang.org/x/tools/godoc v0.1.0-deprecated // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.256.0 // indirect
@@ -195,7 +197,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/grpc v1.79.3 // indirect
-	modernc.org/sqlite v1.28.0 // indirect
+	modernc.org/sqlite v1.56.0 // indirect
 )
 
 require (
@@ -249,7 +251,7 @@ require (
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
@@ -258,7 +260,7 @@ require (
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.1
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/mapstructure v1.5.0
@@ -274,7 +276,7 @@ require (
 	github.com/prometheus/common/assets v0.2.0 // indirect
 	github.com/prometheus/common/sigv4 v0.1.0 // indirect
 	github.com/prometheus/exporter-toolkit v0.10.0 // indirect
-	github.com/prometheus/procfs v0.12.0 // indirect
+	github.com/prometheus/procfs v0.21.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
@@ -292,13 +294,19 @@ require (
 	go.uber.org/goleak v1.3.0
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
-	golang.org/x/sync v0.19.0
-	golang.org/x/text v0.32.0
+	golang.org/x/sync v0.22.0
+	golang.org/x/text v0.40.0
 	golang.org/x/time v0.15.0
-	google.golang.org/protobuf v1.36.10 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	kernel.org/pub/linux/libs/security/libcap/psx v1.2.69 // indirect
-	modernc.org/libc v1.32.0 // indirect
-	modernc.org/mathutil v1.6.0 // indirect
-	modernc.org/memory v1.7.2 // indirect
+	modernc.org/libc v1.74.4 // indirect
+	modernc.org/mathutil v1.7.1 // indirect
+	modernc.org/memory v1.11.0 // indirect
 )
+
+replace github.com/prometheus/common => github.com/prometheus/common v0.44.0
+
+replace github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.17.0
+
+replace github.com/prometheus/procfs => github.com/prometheus/procfs v0.12.0

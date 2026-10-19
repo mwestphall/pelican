@@ -19,6 +19,7 @@
 package server_structs
 
 import (
+	"net/url"
 	"path"
 	"path/filepath"
 	"strings"
@@ -41,6 +42,32 @@ type (
 // Both ends of that arrangement must agree on this string: the origin mounts
 // its handlers under it, and the ad it publishes has to point here.
 const OriginDataRoutePrefix = "/api/v1.0/origin/data"
+
+// OriginNotifyRoute is where an origin serves its object-notification websocket
+// endpoint, relative to its web URL.  The director derives the notify-url it hands
+// to clients from an origin's web URL and this route (see NotifyUrlFromWebUrl), so
+// both sides must use this constant.
+const OriginNotifyRoute = "/api/v1.0/origin/notify"
+
+// NotifyUrlFromWebUrl returns the websocket URL on which the origin whose web
+// interface is at webUrl serves object notifications.  ok is false if webUrl is not
+// an http(s) URL with a host.
+func NotifyUrlFromWebUrl(webUrl url.URL) (notifyUrl url.URL, ok bool) {
+	switch webUrl.Scheme {
+	case "https":
+		notifyUrl.Scheme = "wss"
+	case "http":
+		notifyUrl.Scheme = "ws"
+	default:
+		return url.URL{}, false
+	}
+	if webUrl.Host == "" {
+		return url.URL{}, false
+	}
+	notifyUrl.Host = webUrl.Host
+	notifyUrl.Path = OriginNotifyRoute
+	return notifyUrl, true
+}
 
 const (
 	OriginStoragePosix    OriginStorageType = "posix"

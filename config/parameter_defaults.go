@@ -550,6 +550,8 @@ func SetParameterDefaults(v *viper.Viper, isRoot bool, isOSDF bool) {
 	v.SetDefault(param.Origin_EnableListings.GetName(), true)
 	// Origin.EnableMacaroons
 	v.SetDefault(param.Origin_EnableMacaroons.GetName(), false)
+	// Origin.EnableNotifications
+	v.SetDefault(param.Origin_EnableNotifications.GetName(), false)
 	// Origin.EnableOIDC
 	v.SetDefault(param.Origin_EnableOIDC.GetName(), false)
 	// Origin.EnablePublicReads
@@ -656,6 +658,16 @@ func SetParameterDefaults(v *viper.Viper, isRoot bool, isOSDF bool) {
 	v.SetDefault(param.Origin_MultiuserUmask.GetName(), -1)
 	// Origin.MultiuserVarlinkSocketPath
 	v.SetDefault(param.Origin_MultiuserVarlinkSocketPath.GetName(), "/run/systemd/userdb/io.systemd.UserDatabase")
+	// Origin.NotifierStateLocation
+	if isRoot {
+		v.SetDefault(param.Origin_NotifierStateLocation.GetName(), "/var/lib/pelican/origin-notifier-state")
+	} else {
+		{
+			val := "${ConfigBase}/origin-notifier-state"
+			val = strings.ReplaceAll(val, "${ConfigBase}", v.GetString(param.ConfigBase.GetName()))
+			v.SetDefault(param.Origin_NotifierStateLocation.GetName(), val)
+		}
+	}
 	// Origin.PStoreDataScanInterval
 	v.SetDefault(param.Origin_PStoreDataScanInterval.GetName(), "24h")
 	// Origin.PStoreDataScanRate
@@ -1195,6 +1207,18 @@ func ApplyDerivedDefaults(v *viper.Viper, isRoot bool, isOSDF bool) {
 			val := "${ConfigBase}/origin-fed-token"
 			val = strings.ReplaceAll(val, "${ConfigBase}", v.GetString(param.ConfigBase.GetName()))
 			v.SetDefault(param.Origin_FedTokenLocation.GetName(), val)
+		}
+	}
+	// Origin.NotifierStateLocation
+	if isDefaultSource(param.Origin_NotifierStateLocation.GetName()) {
+		if isRoot {
+			v.SetDefault(param.Origin_NotifierStateLocation.GetName(), "/var/lib/pelican/origin-notifier-state")
+		} else {
+			{
+				val := "${ConfigBase}/origin-notifier-state"
+				val = strings.ReplaceAll(val, "${ConfigBase}", v.GetString(param.ConfigBase.GetName()))
+				v.SetDefault(param.Origin_NotifierStateLocation.GetName(), val)
+			}
 		}
 	}
 	// Origin.UploadTempLocation

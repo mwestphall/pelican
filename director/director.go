@@ -426,7 +426,7 @@ func generateXTokenGenHeader(ginCtx *gin.Context, namespaceAd server_structs.Nam
 // Generate the X-Pelican-Namespace header, which includes information about the namespace and whether token auth is required
 // for reading from this namespace
 func generateXNamespaceHeader(ginCtx *gin.Context, oAds []server_structs.ServerAd, bestNSAd server_structs.NamespaceAd) {
-	server_structs.SetXNamespaceHeader(ginCtx.Writer.Header(), oAds, bestNSAd)
+	server_structs.SetXNamespaceHeader(ginCtx.Writer.Header(), oAds, bestNSAd, ginCtx.Request.URL.Query().Has(pelican_url.QueryNotify))
 }
 
 // Generate the X-Pelican-Broker header using the first origin ad we find supporting
@@ -607,6 +607,9 @@ func mapQueriesToCaps(ctx *gin.Context) string {
 	}
 	if ctx.Request.URL.Query().Has(pelican_url.QueryRecursive) {
 		caps = append(caps, "Listings")
+	}
+	if ctx.Request.URL.Query().Has(pelican_url.QueryNotify) {
+		caps = append(caps, "Notify")
 	}
 
 	var capsStr string
@@ -1053,6 +1056,15 @@ func ShortcutMiddleware(defaultResponse string) gin.HandlerFunc {
 		if c.Request.URL.Query().Has(pelican_url.QueryDirectRead) {
 			log.Debugln("directread query parameter detected, redirecting to origin")
 			// We'll redirect to origin here and the origin will decide if it can serve the request (if direct reads are enabled)
+			redirectToOrigin(c)
+			c.Abort()
+			return
+		}
+
+		// A notification subscription is a question for origins only: caches do not
+		// walk object stores, so send it to the origin endpoint like a direct read.
+		if c.Request.URL.Query().Has(pelican_url.QueryNotify) {
+			log.Debugln("notify query parameter detected, redirecting to origin")
 			redirectToOrigin(c)
 			c.Abort()
 			return

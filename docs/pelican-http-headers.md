@@ -298,11 +298,13 @@ X-Pelican-Token-Generation: issuer=https://get-your-tokens.org, base-path=/foo/b
 - `namespace`: The namespace path (e.g., `/foo/bar`)
 - `require-token`: Boolean indicating if token authentication is required (`true` or `false`)
 - `collections-url`: (Optional) URL for accessing directory listings/collections
+- `notify-url`: (Optional) Websocket URL on which an origin sends notifications of new and modified objects
 
 **Example:**
 
 ```
 X-Pelican-Namespace: namespace=/foo/bar, require-token=true, collections-url=https://my-collections.com
+X-Pelican-Namespace: namespace=/foo/bar, require-token=false, notify-url=wss://origin.example.com:8444/api/v1.0/origin/notify
 ```
 
 **Notes:**
@@ -311,6 +313,10 @@ X-Pelican-Namespace: namespace=/foo/bar, require-token=true, collections-url=htt
   - Both the namespace and origin allow directory listings
   - For authenticated namespaces, the origin has an `AuthURL`
   - For public namespaces, the origin has a regular URL
+- The `notify-url` is only included if:
+  - The request carried the `notify` query parameter
+  - Both the namespace and an origin advertise the `Notify` capability
+  - The URL is built from that origin's web URL, with the `https` scheme becoming `wss`
 - Used by clients to determine authentication requirements and discover additional namespace capabilities
 
 **CORS:**

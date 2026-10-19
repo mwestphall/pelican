@@ -163,6 +163,8 @@ func StringListToCapsHookFunc() mapstructure.DecodeHookFuncType {
 				exportCaps.Reads = true
 			case "Copies":
 				exportCaps.Copies = true
+			case "Notify":
+				exportCaps.Notify = true
 			default:
 				return nil, errors.Errorf("unknown capability %v", cap)
 			}
@@ -269,6 +271,7 @@ func (b *BaseOrigin) populateOriginCaps() {
 		Reads:       param.Origin_EnableReads.GetBool() || pubReads,
 		DirectReads: param.Origin_EnableDirectReads.GetBool(),
 		Copies:      !param.Origin_DisableCopies.GetBool() && param.Origin_EnableWrites.GetBool(),
+		Notify:      param.Origin_EnableNotifications.GetBool(),
 	}
 
 }
@@ -851,6 +854,7 @@ func NamespaceAdsFromExports(exports []OriginExport) ([]server_structs.Namespace
 				Listings:    export.Capabilities.Listings,
 				DirectReads: export.Capabilities.DirectReads,
 				Copies:      export.Capabilities.Copies,
+				Notify:      export.Capabilities.Notify,
 			},
 			Path:       export.FederationPrefix,
 			Generation: []server_structs.TokenGen{tokGen},

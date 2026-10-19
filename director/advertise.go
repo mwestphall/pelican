@@ -48,6 +48,7 @@ func consolidateDupServerAd(newAd, existingAd server_structs.ServerAd) server_st
 	consolidatedAd.Caps.Reads = existingAd.Caps.Reads || newAd.Caps.Reads
 	consolidatedAd.Caps.Writes = existingAd.Caps.Writes || newAd.Caps.Writes
 	consolidatedAd.Caps.Listings = existingAd.Caps.Listings || newAd.Caps.Listings
+	consolidatedAd.Caps.Notify = existingAd.Caps.Notify || newAd.Caps.Notify
 
 	return consolidatedAd
 }

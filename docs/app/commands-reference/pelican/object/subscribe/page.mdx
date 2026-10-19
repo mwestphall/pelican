@@ -1,0 +1,41 @@
+---
+title: pelican object subscribe
+---
+
+## pelican object subscribe
+
+Find the origins that can notify you of new objects under a path
+
+### Synopsis
+
+Ask the federation's director which origins can send notifications about objects
+created or modified under the given path.
+
+Only origins that advertise the Notify capability are considered.
+The command prints the notification endpoint and the origins the director redirected to.
+It does not itself open a notification connection.
+
+```
+pelican object subscribe {object} [flags]
+```
+
+### Options
+
+```
+  -h, --help   help for subscribe
+  -j, --json   Print results in JSON format
+```
+
+### Options inherited from parent commands
+
+```
+      --config string       config file (default is $HOME/.config/pelican/pelican.yaml)
+  -d, --debug               Enable debug log messages
+  -f, --federation string   Pelican federation to utilize
+  -L, --log string          Specified log output file
+      --version             Print the version and exit
+```
+
+### SEE ALSO
+
+* [pelican object](/commands-reference/pelican/object/)	 - Interact with objects in the federation

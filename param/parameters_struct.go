@@ -330,6 +330,7 @@ type Config struct {
 		EnableIssuer bool `mapstructure:"enableissuer" yaml:"EnableIssuer"`
 		EnableListings bool `mapstructure:"enablelistings" yaml:"EnableListings"`
 		EnableMacaroons bool `mapstructure:"enablemacaroons" yaml:"EnableMacaroons"`
+		EnableNotifications bool `mapstructure:"enablenotifications" yaml:"EnableNotifications"`
 		EnableOIDC bool `mapstructure:"enableoidc" yaml:"EnableOIDC"`
 		EnablePublicReads bool `mapstructure:"enablepublicreads" yaml:"EnablePublicReads"`
 		EnableReads bool `mapstructure:"enablereads" yaml:"EnableReads"`
@@ -399,6 +400,7 @@ type Config struct {
 		MultiuserUmask int `mapstructure:"multiuserumask" yaml:"MultiuserUmask"`
 		MultiuserVarlinkSocketPath string `mapstructure:"multiuservarlinksocketpath" yaml:"MultiuserVarlinkSocketPath"`
 		NamespacePrefix string `mapstructure:"namespaceprefix" yaml:"NamespacePrefix"`
+		NotifierStateLocation string `mapstructure:"notifierstatelocation" yaml:"NotifierStateLocation"`
 		ObjectProviderURL string `mapstructure:"objectproviderurl" yaml:"ObjectProviderURL"`
 		PStoreDataScanInterval time.Duration `mapstructure:"pstoredatascaninterval" yaml:"PStoreDataScanInterval"`
 		PStoreDataScanRate byte_rate.ByteRate `mapstructure:"pstoredatascanrate" yaml:"PStoreDataScanRate"`
@@ -933,6 +935,7 @@ type configWithType struct {
 		EnableIssuer struct { Type string; Value bool }
 		EnableListings struct { Type string; Value bool }
 		EnableMacaroons struct { Type string; Value bool }
+		EnableNotifications struct { Type string; Value bool }
 		EnableOIDC struct { Type string; Value bool }
 		EnablePublicReads struct { Type string; Value bool }
 		EnableReads struct { Type string; Value bool }
@@ -1002,6 +1005,7 @@ type configWithType struct {
 		MultiuserUmask struct { Type string; Value int }
 		MultiuserVarlinkSocketPath struct { Type string; Value string }
 		NamespacePrefix struct { Type string; Value string }
+		NotifierStateLocation struct { Type string; Value string }
 		ObjectProviderURL struct { Type string; Value string }
 		PStoreDataScanInterval struct { Type string; Value time.Duration }
 		PStoreDataScanRate struct { Type string; Value byte_rate.ByteRate }

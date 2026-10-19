@@ -7,5 +7,6 @@ export default {
     "put": "pelican object put",
     "share": "pelican object share",
     "stat": "pelican object stat",
+    "subscribe": "pelican object subscribe",
     "sync": "pelican object sync",
 }

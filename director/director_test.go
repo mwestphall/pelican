@@ -2985,3 +2985,78 @@ func TestValidateClientToken(t *testing.T) {
 		assert.Equal(t, http.StatusOK, status)
 	})
 }
+
+// A subscription request (?notify) is answered by origins only, and only those
+// that advertise the Notify capability for the namespace; the notify-url in the
+// response is built from that origin's web URL.
+func TestRedirectToOriginNotify(t *testing.T) {
+	setGinTestMode()
+	t.Cleanup(test_utils.SetupTestLogging(t))
+	server_utils.ResetTestState()
+	t.Cleanup(func() {
+		shutdownHealthTests()
+		shutdownStatUtils()
+		serverAds.DeleteAll()
+		server_utils.ResetTestState()
+	})
+	serverAds.DeleteAll()
+	go serverAds.Start()
+	t.Cleanup(func() {
+		serverAds.DeleteAll()
+		serverAds.Stop()
+	})
+
+	require.NoError(t, param.Server_ExternalWebUrl.Set("https://director.example.com"))
+	require.NoError(t, param.Director_CacheSortMethod.Set("random"))
+
+	recordOrigin := func(name, host string, caps server_structs.Capabilities, nsPath string) {
+		ad := server_structs.ServerAd{
+			URL:    url.URL{Scheme: "https", Host: host + ":8443"},
+			WebURL: url.URL{Scheme: "https", Host: host + ":8444"},
+			Type:   server_structs.OriginType.String(),
+			Caps:   caps,
+		}
+		ad.Initialize(name)
+		nsAds := []server_structs.NamespaceAd{{Path: nsPath, Caps: caps}}
+		recordAd(context.Background(), ad, &nsAds)
+	}
+	notifier := server_structs.Capabilities{PublicReads: true, Reads: true, Notify: true}
+	quiet := server_structs.Capabilities{PublicReads: true, Reads: true}
+	recordOrigin("notifier", "notifier.example.com", notifier, "/notify/ns")
+	recordOrigin("quiet", "quiet.example.com", quiet, "/quiet/ns")
+
+	router := gin.New()
+	router.GET("/api/v1.0/director/origin/*any", redirectToOrigin)
+	get := func(target string) *httptest.ResponseRecorder {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", target, nil)
+		req.Header.Add("User-Agent", "pelican-client/7.6.1")
+		router.ServeHTTP(w, req)
+		return w
+	}
+
+	t.Run("notifying-origin-supplies-notify-url", func(t *testing.T) {
+		w := get("/api/v1.0/director/origin/notify/ns/dir?notify")
+		require.Equal(t, http.StatusTemporaryRedirect, w.Code, w.Body.String())
+		assert.Contains(t, w.Header().Get("X-Pelican-Namespace"), "notify-url=wss://notifier.example.com:8444"+server_structs.OriginNotifyRoute)
+		assert.Contains(t, w.Header().Get("Link"), "notifier.example.com:8443")
+	})
+
+	t.Run("no-notify-url-unless-requested", func(t *testing.T) {
+		w := get("/api/v1.0/director/origin/notify/ns/dir")
+		require.Equal(t, http.StatusTemporaryRedirect, w.Code, w.Body.String())
+		assert.NotContains(t, w.Header().Get("X-Pelican-Namespace"), "notify-url")
+	})
+
+	t.Run("origin-without-the-capability-is-refused", func(t *testing.T) {
+		w := get("/api/v1.0/director/origin/quiet/ns/dir?notify")
+		require.Equal(t, http.StatusMethodNotAllowed, w.Code, w.Body.String())
+		assert.Contains(t, w.Body.String(), "Notify")
+		assert.Empty(t, w.Header().Get("Location"))
+	})
+
+	t.Run("origin-without-the-capability-still-serves-ordinary-requests", func(t *testing.T) {
+		w := get("/api/v1.0/director/origin/quiet/ns/dir")
+		require.Equal(t, http.StatusTemporaryRedirect, w.Code, w.Body.String())
+	})
+}

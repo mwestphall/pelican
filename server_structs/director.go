@@ -60,6 +60,7 @@ type (
 		Listings    bool `json:"Listing"`
 		DirectReads bool `json:"FallBackRead"`
 		Copies      bool `json:"Copies"`
+		Notify      bool `json:"Notify"`
 	}
 
 	NamespaceAd struct {
@@ -228,6 +229,7 @@ type (
 		Namespace      string // Federation Prefix path
 		RequireToken   bool   // Whether or not a token is required for read operations
 		CollectionsUrl *url.URL
+		NotifyUrl      *url.URL // Websocket endpoint for object notifications; only present when the request asked for one
 	}
 
 	XPelTokGen struct {
@@ -421,6 +423,9 @@ func (x *XPelNs) ParseRawHeader(header *http.Header) error {
 	if keyDict["collections-url"] != "" {
 		x.CollectionsUrl, _ = url.Parse(keyDict["collections-url"])
 	}
+	if keyDict["notify-url"] != "" {
+		x.NotifyUrl, _ = url.Parse(keyDict["notify-url"])
+	}
 	return nil
 }
 
@@ -558,11 +563,14 @@ func SetXTokenGenHeader(hdr http.Header, namespaceAd NamespaceAd) {
 }
 
 // setXNamespaceHeader is the shared core that writes the X-Pelican-Namespace header
-// given an already-resolved collections URL (which may be empty).
-func setXNamespaceHeader(hdr http.Header, collUrl string, bestNSAd NamespaceAd) {
+// given already-resolved collections and notify URLs (either of which may be empty).
+func setXNamespaceHeader(hdr http.Header, collUrl, notifyUrl string, bestNSAd NamespaceAd) {
 	xPelicanNamespace := fmt.Sprintf("namespace=%s, require-token=%v", bestNSAd.Path, !bestNSAd.Caps.PublicReads)
 	if collUrl != "" {
 		xPelicanNamespace += fmt.Sprintf(", collections-url=%s", collUrl)
+	}
+	if notifyUrl != "" {
+		xPelicanNamespace += fmt.Sprintf(", notify-url=%s", notifyUrl)
 	}
 	hdr[XPelNs{}.GetName()] = []string{xPelicanNamespace}
 }
@@ -570,7 +578,9 @@ func setXNamespaceHeader(hdr http.Header, collUrl string, bestNSAd NamespaceAd) 
 // SetXNamespaceHeader sets the X-Pelican-Namespace header on hdr, including information about
 // the namespace and whether token auth is required for reading from it.  oAds (origin ads) are
 // only used to compute the optional collections-url; callers without origin ads may pass nil.
-func SetXNamespaceHeader(hdr http.Header, oAds []ServerAd, bestNSAd NamespaceAd) {
+// When includeNotify is true the header also carries a notify-url, taken from the first origin
+// ad that supports notifications for this namespace.
+func SetXNamespaceHeader(hdr http.Header, oAds []ServerAd, bestNSAd NamespaceAd, includeNotify bool) {
 	var collUrl string
 	// If the namespace or the origin does not allow directory listings, then we should not advertise a collections-url.
 	for _, oAd := range oAds {
@@ -584,7 +594,20 @@ func SetXNamespaceHeader(hdr http.Header, oAds []ServerAd, bestNSAd NamespaceAd)
 			}
 		}
 	}
-	setXNamespaceHeader(hdr, collUrl, bestNSAd)
+
+	var notifyUrl string
+	if includeNotify && bestNSAd.Caps.Notify {
+		for _, oAd := range oAds {
+			if !oAd.Caps.Notify {
+				continue
+			}
+			if u, ok := NotifyUrlFromWebUrl(oAd.WebURL); ok {
+				notifyUrl = u.String()
+				break
+			}
+		}
+	}
+	setXNamespaceHeader(hdr, collUrl, notifyUrl, bestNSAd)
 }
 
 // SetXNamespaceHeaderWithCollections sets the X-Pelican-Namespace header using an explicit
@@ -595,7 +618,7 @@ func SetXNamespaceHeaderWithCollections(hdr http.Header, collUrl string, bestNSA
 	if !bestNSAd.Caps.Listings {
 		collUrl = ""
 	}
-	setXNamespaceHeader(hdr, collUrl, bestNSAd)
+	setXNamespaceHeader(hdr, collUrl, "", bestNSAd)
 }
 
 // nsPathCoversReq reports whether the namespace path nsBase covers the request

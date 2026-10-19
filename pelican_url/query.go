@@ -33,6 +33,7 @@ const (
 	QueryDirectRead   string = "directread"
 	QuerySkipStat     string = "skipstat"
 	QueryPreferCached string = "prefercached"
+	QueryNotify       string = "notify"
 
 	PackValueAuto  string = "auto"
 	PackValueTar   string = "tar"
@@ -65,7 +66,7 @@ func (pvs PelicanURLValues) Add(key string, val string) {
 // Helper function to check if a query parameter is known
 func isKnownQueryParam(key string) bool {
 	switch key {
-	case QueryRecursive, QueryPack, QueryDirectRead, QuerySkipStat, QueryPreferCached:
+	case QueryRecursive, QueryPack, QueryDirectRead, QuerySkipStat, QueryPreferCached, QueryNotify:
 		return true
 	default:
 		return false
@@ -107,7 +108,7 @@ func (p *PelicanURL) ValidateQueryParams(opts ...ParseOption) error {
 				}
 				return errors.New(fmt.Sprintf("Invalid value for query parameter '%s': %s", key, val))
 			}
-		case QueryDirectRead, QuerySkipStat, QueryPreferCached:
+		case QueryDirectRead, QuerySkipStat, QueryPreferCached, QueryNotify:
 			if val != "" {
 				log.Warningln(fmt.Sprintf("Values for '%s' query parameter have no effect and will be ignored", key))
 			}

@@ -672,6 +672,12 @@ definitions:
       DirectReads:
         type: boolean
         default: false
+      Notify:
+        type: boolean
+        default: false
+        description: >-
+          Whether the origin sends notifications of objects created or modified in the namespace.
+          See `Origin.EnableNotifications`.
   OriginExport:
     type: object
     properties:
@@ -4847,6 +4853,30 @@ paths:
                   Msg:
                     type: string
                     description: Error message.
+  /origin/notify:
+    get:
+      tags:
+        - origin_ui
+      summary: Subscribe to notifications of new and modified objects (websocket)
+      description: >-
+        Upgrades the connection to a websocket carrying STOMP 1.2.
+        Only served when `Origin.EnableNotifications` is true and the origin is backed by a native (non-XRootD) storage backend.
+        This endpoint is currently unauthenticated.
+
+        A client sends `SUBSCRIBE` with a `destination` of the form `<client id>/<protocol>/<object path>`, e.g. `client1/osdf/foo/bar`,
+        and a `subscription` header equal to the client id.
+        The origin then sends a `MESSAGE` frame, whose body is a JSON string holding the federation path of the object, for every object
+        under the subscribed path that is created or modified.
+        The origin walks its exports once per minute, so notifications are delayed by up to that long.
+        Deletions are not announced.
+
+        The director reports this endpoint, as the `notify-url` field of the `X-Pelican-Namespace` header,
+        for requests that carry the `notify` query parameter to origins that advertise the `Notify` capability.
+      responses:
+        "101":
+          description: Switching Protocols
+        "404":
+          description: Notifications are not enabled on this origin
   /origin_ui/exports:
     get:
       summary: Returns the data exports of the origin server

@@ -545,6 +545,34 @@ func TestOriginSupportsQuery(t *testing.T) {
 			expected: false,
 		},
 		{
+			name:       "Notify supported",
+			query:      pelican_url.QueryNotify,
+			nsCaps:     server_structs.Capabilities{Notify: true},
+			serverCaps: server_structs.Capabilities{Notify: true},
+			expected:   true,
+		},
+		{
+			name:       "Notify not supported by server",
+			query:      pelican_url.QueryNotify,
+			nsCaps:     server_structs.Capabilities{Notify: true},
+			serverCaps: server_structs.Capabilities{Notify: false},
+			expected:   false,
+		},
+		{
+			name:       "Notify not supported by ns",
+			query:      pelican_url.QueryNotify,
+			nsCaps:     server_structs.Capabilities{Notify: false},
+			serverCaps: server_structs.Capabilities{Notify: true},
+			expected:   false,
+		},
+		{
+			name:       "Notify capability is not needed without the query",
+			query:      "",
+			nsCaps:     server_structs.Capabilities{},
+			serverCaps: server_structs.Capabilities{},
+			expected:   true,
+		},
+		{
 			name:  "No query parameters",
 			query: "",
 			nsCaps: server_structs.Capabilities{

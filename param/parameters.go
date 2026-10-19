@@ -367,6 +367,7 @@ var runtimeConfigurableMap = map[string]bool{
 	"Origin.EnableIssuer": false,
 	"Origin.EnableListings": false,
 	"Origin.EnableMacaroons": false,
+	"Origin.EnableNotifications": false,
 	"Origin.EnableOIDC": false,
 	"Origin.EnablePublicReads": false,
 	"Origin.EnableReads": false,
@@ -432,6 +433,7 @@ var runtimeConfigurableMap = map[string]bool{
 	"Origin.MultiuserUmask": false,
 	"Origin.MultiuserVarlinkSocketPath": false,
 	"Origin.NamespacePrefix": false,
+	"Origin.NotifierStateLocation": false,
 	"Origin.ObjectProviderURL": false,
 	"Origin.PStoreDataScanInterval": false,
 	"Origin.PStoreDataScanRate": false,
@@ -784,6 +786,7 @@ var stringAccessors = map[string]func(*Config) string{
 	"Origin.Mode": func(c *Config) string { return c.Origin.Mode },
 	"Origin.MultiuserVarlinkSocketPath": func(c *Config) string { return c.Origin.MultiuserVarlinkSocketPath },
 	"Origin.NamespacePrefix": func(c *Config) string { return c.Origin.NamespacePrefix },
+	"Origin.NotifierStateLocation": func(c *Config) string { return c.Origin.NotifierStateLocation },
 	"Origin.ObjectProviderURL": func(c *Config) string { return c.Origin.ObjectProviderURL },
 	"Origin.PStoreLocation": func(c *Config) string { return c.Origin.PStoreLocation },
 	"Origin.PStoreMetadataBackupLocation": func(c *Config) string { return c.Origin.PStoreMetadataBackupLocation },
@@ -1165,6 +1168,7 @@ var boolAccessors = map[string]func(*Config) bool{
 	"Origin.EnableIssuer": func(c *Config) bool { return c.Origin.EnableIssuer },
 	"Origin.EnableListings": func(c *Config) bool { return c.Origin.EnableListings },
 	"Origin.EnableMacaroons": func(c *Config) bool { return c.Origin.EnableMacaroons },
+	"Origin.EnableNotifications": func(c *Config) bool { return c.Origin.EnableNotifications },
 	"Origin.EnableOIDC": func(c *Config) bool { return c.Origin.EnableOIDC },
 	"Origin.EnablePublicReads": func(c *Config) bool { return c.Origin.EnablePublicReads },
 	"Origin.EnableReads": func(c *Config) bool { return c.Origin.EnableReads },
@@ -1702,6 +1706,7 @@ var allParameterNames = []string{
 	"Origin.EnableIssuer",
 	"Origin.EnableListings",
 	"Origin.EnableMacaroons",
+	"Origin.EnableNotifications",
 	"Origin.EnableOIDC",
 	"Origin.EnablePublicReads",
 	"Origin.EnableReads",
@@ -1767,6 +1772,7 @@ var allParameterNames = []string{
 	"Origin.MultiuserUmask",
 	"Origin.MultiuserVarlinkSocketPath",
 	"Origin.NamespacePrefix",
+	"Origin.NotifierStateLocation",
 	"Origin.ObjectProviderURL",
 	"Origin.PStoreDataScanInterval",
 	"Origin.PStoreDataScanRate",
@@ -2092,6 +2098,7 @@ var (
 	Origin_Mode = StringParam{"Origin.Mode"}
 	Origin_MultiuserVarlinkSocketPath = StringParam{"Origin.MultiuserVarlinkSocketPath"}
 	Origin_NamespacePrefix = StringParam{"Origin.NamespacePrefix"}
+	Origin_NotifierStateLocation = StringParam{"Origin.NotifierStateLocation"}
 	Origin_ObjectProviderURL = StringParam{"Origin.ObjectProviderURL"}
 	Origin_PStoreLocation = StringParam{"Origin.PStoreLocation"}
 	Origin_PStoreMetadataBackupLocation = StringParam{"Origin.PStoreMetadataBackupLocation"}
@@ -2352,6 +2359,7 @@ var (
 	Origin_EnableIssuer = BoolParam{"Origin.EnableIssuer"}
 	Origin_EnableListings = BoolParam{"Origin.EnableListings"}
 	Origin_EnableMacaroons = BoolParam{"Origin.EnableMacaroons"}
+	Origin_EnableNotifications = BoolParam{"Origin.EnableNotifications"}
 	Origin_EnableOIDC = BoolParam{"Origin.EnableOIDC"}
 	Origin_EnablePublicReads = BoolParam{"Origin.EnablePublicReads"}
 	Origin_EnableReads = BoolParam{"Origin.EnableReads"}
@@ -2659,6 +2667,7 @@ func init() {
 		"Origin.Mode": Origin_Mode,
 		"Origin.MultiuserVarlinkSocketPath": Origin_MultiuserVarlinkSocketPath,
 		"Origin.NamespacePrefix": Origin_NamespacePrefix,
+		"Origin.NotifierStateLocation": Origin_NotifierStateLocation,
 		"Origin.ObjectProviderURL": Origin_ObjectProviderURL,
 		"Origin.PStoreLocation": Origin_PStoreLocation,
 		"Origin.PStoreMetadataBackupLocation": Origin_PStoreMetadataBackupLocation,
@@ -2907,6 +2916,7 @@ func init() {
 		"Origin.EnableIssuer": Origin_EnableIssuer,
 		"Origin.EnableListings": Origin_EnableListings,
 		"Origin.EnableMacaroons": Origin_EnableMacaroons,
+		"Origin.EnableNotifications": Origin_EnableNotifications,
 		"Origin.EnableOIDC": Origin_EnableOIDC,
 		"Origin.EnablePublicReads": Origin_EnablePublicReads,
 		"Origin.EnableReads": Origin_EnableReads,

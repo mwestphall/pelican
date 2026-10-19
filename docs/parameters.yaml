@@ -1379,6 +1379,31 @@ type: bool
 default: true
 components: ["origin"]
 ---
+name: Origin.EnableNotifications
+description: |+
+  A boolean indicating whether the origin notifies subscribed clients of objects that are created or modified.
+  When true, the origin walks the contents of each export once per minute and sends a notification, over a websocket connection, for every object modified since the previous walk.
+  The origin also advertises the `Notify` capability to the director.
+  Deletions are not announced.
+
+  Notifications are only supported for exports served by a native (non-XRootD) storage backend such as `posixv2`.
+
+  NOTE: This config option is meant to configure an _origin's_ capabilities, but can be used to configure a namespace when the origin
+  exports only a single prefix or when every exported namespace should inherit the same configuration.
+type: bool
+default: false
+components: ["origin"]
+---
+name: Origin.NotifierStateLocation
+description: |+
+  A filepath to the file in which the origin records the modification time of the newest object it has announced to subscribers.
+  The origin reads it at startup so that objects announced before a restart are not announced again.
+  This only has effect when Origin.EnableNotifications is true.
+type: filename
+root_default: /var/lib/pelican/origin-notifier-state
+default: ${ConfigBase}/origin-notifier-state
+components: ["origin"]
+---
 name: Origin.DisableCopies
 description: |+
   When false (the default), the origin supports HTTP third-party copy (TPC) and automatically enables the Copies capability for

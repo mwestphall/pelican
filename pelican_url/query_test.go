@@ -45,6 +45,13 @@ func TestValidateQueryParams(t *testing.T) {
 			errMsg:       "",
 		},
 		{
+			name:         "test valid notify",
+			pUrl:         "pelican://something/here?notify",
+			allowUnknown: false,
+			expected:     "notify",
+			errMsg:       "",
+		},
+		{
 			name:         "test valid skipstat",
 			pUrl:         "pelican://something/here?skipstat",
 			allowUnknown: false,

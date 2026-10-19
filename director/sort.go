@@ -298,6 +298,9 @@ func originSupportsQuery() AdPredicate {
 		if q.Has(pelican_url.QueryRecursive) && !(ad.ServerAd.Caps.Listings && ad.NamespaceAd.Caps.Listings) {
 			return false
 		}
+		if q.Has(pelican_url.QueryNotify) && !(ad.ServerAd.Caps.Notify && ad.NamespaceAd.Caps.Notify) {
+			return false
+		}
 		return true
 	}
 }
@@ -476,7 +479,7 @@ func getSortedAds(ctx *gin.Context, requestId uuid.UUID) (sortedOrigins, sortedC
 	// Avoid sorting any slices we don't need to
 	shouldSortOrigins := isOriginRequest(ctx)
 	shouldSortCaches := isCacheRequest(ctx)
-	if reqParams.Has(pelican_url.QueryDirectRead) {
+	if reqParams.Has(pelican_url.QueryDirectRead) || ctx.Request.URL.Query().Has(pelican_url.QueryNotify) {
 		shouldSortOrigins = true
 		shouldSortCaches = false
 	}

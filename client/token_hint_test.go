@@ -91,7 +91,7 @@ func writeTokenHintHeaders(h http.Header) {
 		MaxScopeDepth:    3,
 		CredentialIssuer: *issuer,
 	}}
-	server_structs.SetXNamespaceHeader(h, nil, ad)
+	server_structs.SetXNamespaceHeader(h, nil, ad, false)
 	server_structs.SetXAuthHeader(h, ad)
 	server_structs.SetXTokenGenHeader(h, ad)
 }

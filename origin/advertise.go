@@ -123,6 +123,14 @@ func (server *OriginServer) CreateAdvertisement(name, id, originUrlStr, originWe
 	if err != nil {
 		return nil, err
 	}
+
+	// Only advertise Notify for the namespaces the notifier will actually watch,
+	// and for the origin as a whole only if at least one such namespace exists.
+	var originNotifies bool
+	for i, export := range advertisedExports {
+		nsAds[i].Caps.Notify = exportSupportsNotify(export)
+		originNotifies = originNotifies || nsAds[i].Caps.Notify
+	}
 	for _, export := range advertisedExports {
 		prefixes = append(prefixes, export.FederationPrefix)
 	}
@@ -177,6 +185,7 @@ func (server *OriginServer) CreateAdvertisement(name, id, originUrlStr, originWe
 			DirectReads: param.Origin_EnableDirectReads.GetBool(),
 			Listings:    param.Origin_EnableListings.GetBool(),
 			Copies:      !param.Origin_DisableCopies.GetBool(),
+			Notify:      originNotifies,
 		},
 		Issuer: []server_structs.TokenIssuer{{
 			BasePaths: prefixes,
