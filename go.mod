@@ -53,7 +53,7 @@ require (
 	github.com/prometheus/client_golang v1.24.1
 	github.com/prometheus/common v0.70.1
 	github.com/prometheus/prometheus v0.48.1
-	github.com/sci-ndp/pelican-client-protocol/stomp-server-go v0.0.0-20261021194834-673fb195b776
+	github.com/sci-ndp/pelican-client-protocol/stomp-server-go v0.0.0-20261021204524-9f61918000b7
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/pflag v1.0.9

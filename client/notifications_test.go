@@ -225,6 +225,17 @@ func TestListenReportsAConnectionTheOriginDrops(t *testing.T) {
 	assert.Contains(t, err.Error(), "ended")
 }
 
+// The notification server answers a subscription whose topic does not start with
+// the client's own id with an ERROR frame and closes the connection, so Listen
+// reports it instead of waiting in silence.
+func TestListenReportsASubscriptionTheServerRejects(t *testing.T) {
+	f := newNotifyFixture(t)
+	err := f.result("c1", "someone-else/1/pelican/ns").Listen(context.Background(), func(Notification) {})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "ended")
+	assert.Contains(t, err.Error(), "your own subscription id", "the server's reason is passed on")
+}
+
 func TestListenReportsAnUnreachableOrigin(t *testing.T) {
 	test_utils.InitClient(t, map[param.Param]any{param.TLSSkipVerify: true})
 	// Nothing listens here: a server that was started and closed.
