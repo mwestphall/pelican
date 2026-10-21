@@ -289,8 +289,8 @@ func OriginServeFinish(ctx context.Context, egrp *errgroup.Group, engine *gin.En
 	// Handle POSIXv2 and SSH-specific initialization now that the web server is running
 	storageType := param.Origin_StorageType.GetString()
 	useXRootD := originUsesXRootD()
-	if useXRootD && param.Origin_EnableNotifications.GetBool() {
-		log.Warningf("%s is set, but object notifications are not supported for the XRootD-backed storage type %q; no notifications will be sent",
+	if !useXRootD && param.Origin_EnableNotifications.GetBool() {
+		log.Warningf("%s is set, but object notifications are only supported for XRootD-backed storage types, not %q; no notifications will be sent",
 			param.Origin_EnableNotifications.GetName(), storageType)
 	}
 	if !useXRootD {
@@ -366,14 +366,6 @@ func OriginServeFinish(ctx context.Context, egrp *errgroup.Group, engine *gin.En
 		origin_serve.RegisterStorageAPI(engine.Group("/api/v1.0"),
 			web_ui.AuthHandler, web_ui.AdminAuthHandler)
 
-		// Announce new and modified objects to subscribers.  This walks the
-		// backends registered above, so it must come after them.
-		if param.Origin_EnableNotifications.GetBool() {
-			if err := origin.LaunchObjectNotifier(ctx, egrp, engine); err != nil {
-				return errors.Wrap(err, "failed to launch the object notifier")
-			}
-		}
-
 		// For POSIXv2, the origin serves files directly via the web server, not XRootD.
 		// Update Origin.Url to use the external web URL which is now set to the correct port.
 		externalWebUrl := param.Server_ExternalWebUrl.GetString()
@@ -383,6 +375,14 @@ func OriginServeFinish(ctx context.Context, egrp *errgroup.Group, engine *gin.En
 		log.Debugf("Set Origin.Url to %s for POSIXv2 origin", externalWebUrl)
 
 		log.Info("POSIXv2 origin backend initialized successfully")
+	}
+
+	// Announce new and modified objects to subscribers.  The notifier lists the
+	// origin's own XRootD endpoint, which was launched before the web server.
+	if useXRootD && param.Origin_EnableNotifications.GetBool() {
+		if err := origin.LaunchObjectNotifier(ctx, egrp, engine); err != nil {
+			return errors.Wrap(err, "failed to launch the object notifier")
+		}
 	}
 
 	// Register the transfer API on the origin if enabled

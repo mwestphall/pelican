@@ -4860,14 +4860,18 @@ paths:
       summary: Subscribe to notifications of new and modified objects (websocket)
       description: >-
         Upgrades the connection to a websocket carrying STOMP 1.2.
-        Only served when `Origin.EnableNotifications` is true and the origin is backed by a native (non-XRootD) storage backend.
+        Only served when `Origin.EnableNotifications` is true and the origin is backed by XRootD.
         This endpoint is currently unauthenticated.
 
-        A client sends `SUBSCRIBE` with a `destination` of the form `<client id>/<protocol>/<object path>`, e.g. `client1/osdf/foo/bar`,
+        A client sends `SUBSCRIBE` with a `destination` of the form `<client id>/<depth>/<protocol>/<object path>`, e.g. `client1/2/osdf/foo/bar`,
         and a `subscription` header equal to the client id.
+        The depth is an integer of at least 1: objects directly in the path are one level down.
         The origin then sends a `MESSAGE` frame, whose body is a JSON string holding the federation path of the object, for every object
-        under the subscribed path that is created or modified.
-        The origin walks its exports once per minute, so notifications are delayed by up to that long.
+        within the subscribed path and depth that is created or modified.
+        A subscription that cannot be read is ignored and never notified.
+
+        The origin lists only the paths clients are subscribed to, once per minute, so notifications are delayed by up to that long.
+        Objects that already existed when the subscription began are not announced.
         Deletions are not announced.
 
         The director reports this endpoint, as the `notify-url` field of the `X-Pelican-Namespace` header,

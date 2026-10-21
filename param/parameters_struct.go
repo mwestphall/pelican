@@ -400,7 +400,6 @@ type Config struct {
 		MultiuserUmask int `mapstructure:"multiuserumask" yaml:"MultiuserUmask"`
 		MultiuserVarlinkSocketPath string `mapstructure:"multiuservarlinksocketpath" yaml:"MultiuserVarlinkSocketPath"`
 		NamespacePrefix string `mapstructure:"namespaceprefix" yaml:"NamespacePrefix"`
-		NotifierStateLocation string `mapstructure:"notifierstatelocation" yaml:"NotifierStateLocation"`
 		ObjectProviderURL string `mapstructure:"objectproviderurl" yaml:"ObjectProviderURL"`
 		PStoreDataScanInterval time.Duration `mapstructure:"pstoredatascaninterval" yaml:"PStoreDataScanInterval"`
 		PStoreDataScanRate byte_rate.ByteRate `mapstructure:"pstoredatascanrate" yaml:"PStoreDataScanRate"`
@@ -1005,7 +1004,6 @@ type configWithType struct {
 		MultiuserUmask struct { Type string; Value int }
 		MultiuserVarlinkSocketPath struct { Type string; Value string }
 		NamespacePrefix struct { Type string; Value string }
-		NotifierStateLocation struct { Type string; Value string }
 		ObjectProviderURL struct { Type string; Value string }
 		PStoreDataScanInterval struct { Type string; Value time.Duration }
 		PStoreDataScanRate struct { Type string; Value byte_rate.ByteRate }

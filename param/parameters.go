@@ -433,7 +433,6 @@ var runtimeConfigurableMap = map[string]bool{
 	"Origin.MultiuserUmask": false,
 	"Origin.MultiuserVarlinkSocketPath": false,
 	"Origin.NamespacePrefix": false,
-	"Origin.NotifierStateLocation": false,
 	"Origin.ObjectProviderURL": false,
 	"Origin.PStoreDataScanInterval": false,
 	"Origin.PStoreDataScanRate": false,
@@ -786,7 +785,6 @@ var stringAccessors = map[string]func(*Config) string{
 	"Origin.Mode": func(c *Config) string { return c.Origin.Mode },
 	"Origin.MultiuserVarlinkSocketPath": func(c *Config) string { return c.Origin.MultiuserVarlinkSocketPath },
 	"Origin.NamespacePrefix": func(c *Config) string { return c.Origin.NamespacePrefix },
-	"Origin.NotifierStateLocation": func(c *Config) string { return c.Origin.NotifierStateLocation },
 	"Origin.ObjectProviderURL": func(c *Config) string { return c.Origin.ObjectProviderURL },
 	"Origin.PStoreLocation": func(c *Config) string { return c.Origin.PStoreLocation },
 	"Origin.PStoreMetadataBackupLocation": func(c *Config) string { return c.Origin.PStoreMetadataBackupLocation },
@@ -1772,7 +1770,6 @@ var allParameterNames = []string{
 	"Origin.MultiuserUmask",
 	"Origin.MultiuserVarlinkSocketPath",
 	"Origin.NamespacePrefix",
-	"Origin.NotifierStateLocation",
 	"Origin.ObjectProviderURL",
 	"Origin.PStoreDataScanInterval",
 	"Origin.PStoreDataScanRate",
@@ -2098,7 +2095,6 @@ var (
 	Origin_Mode = StringParam{"Origin.Mode"}
 	Origin_MultiuserVarlinkSocketPath = StringParam{"Origin.MultiuserVarlinkSocketPath"}
 	Origin_NamespacePrefix = StringParam{"Origin.NamespacePrefix"}
-	Origin_NotifierStateLocation = StringParam{"Origin.NotifierStateLocation"}
 	Origin_ObjectProviderURL = StringParam{"Origin.ObjectProviderURL"}
 	Origin_PStoreLocation = StringParam{"Origin.PStoreLocation"}
 	Origin_PStoreMetadataBackupLocation = StringParam{"Origin.PStoreMetadataBackupLocation"}
@@ -2667,7 +2663,6 @@ func init() {
 		"Origin.Mode": Origin_Mode,
 		"Origin.MultiuserVarlinkSocketPath": Origin_MultiuserVarlinkSocketPath,
 		"Origin.NamespacePrefix": Origin_NamespacePrefix,
-		"Origin.NotifierStateLocation": Origin_NotifierStateLocation,
 		"Origin.ObjectProviderURL": Origin_ObjectProviderURL,
 		"Origin.PStoreLocation": Origin_PStoreLocation,
 		"Origin.PStoreMetadataBackupLocation": Origin_PStoreMetadataBackupLocation,

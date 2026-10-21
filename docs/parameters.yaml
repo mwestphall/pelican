@@ -1382,26 +1382,21 @@ components: ["origin"]
 name: Origin.EnableNotifications
 description: |+
   A boolean indicating whether the origin notifies subscribed clients of objects that are created or modified.
-  When true, the origin walks the contents of each export once per minute and sends a notification, over a websocket connection, for every object modified since the previous walk.
-  The origin also advertises the `Notify` capability to the director.
+  When true, the origin accepts websocket subscriptions and, once per minute, lists the paths that clients are subscribed to and sends a notification for every object modified since the previous listing.
+  The origin only lists paths that some client is subscribed to, so with no subscribers it does no work.
   Deletions are not announced.
+  The origin also advertises the `Notify` capability to the director.
 
-  Notifications are only supported for exports served by a native (non-XRootD) storage backend such as `posixv2`.
+  A subscription names a path and a depth, and the origin lists that many levels below the path.
+  Objects directly in the path are one level down.
+
+  The origin lists its own XRootD endpoint with WebDAV `PROPFIND` requests, so notifications are only supported for exports served by an XRootD-backed storage type, and only for exports that also have the `Listings` capability.
+  Exports on native (non-XRootD) storage types are not supported.
 
   NOTE: This config option is meant to configure an _origin's_ capabilities, but can be used to configure a namespace when the origin
   exports only a single prefix or when every exported namespace should inherit the same configuration.
 type: bool
 default: false
-components: ["origin"]
----
-name: Origin.NotifierStateLocation
-description: |+
-  A filepath to the file in which the origin records the modification time of the newest object it has announced to subscribers.
-  The origin reads it at startup so that objects announced before a restart are not announced again.
-  This only has effect when Origin.EnableNotifications is true.
-type: filename
-root_default: /var/lib/pelican/origin-notifier-state
-default: ${ConfigBase}/origin-notifier-state
 components: ["origin"]
 ---
 name: Origin.DisableCopies
