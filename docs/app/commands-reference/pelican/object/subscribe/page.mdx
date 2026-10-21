@@ -4,24 +4,29 @@ title: pelican object subscribe
 
 ## pelican object subscribe
 
-Find the origins that can notify you of new objects under a path
+Listen for notifications of new and modified objects under a path
 
 ### Synopsis
 
-Ask the federation's director which origins can send notifications about objects
-created or modified under the given path.
+Subscribe to notifications of objects created or modified under the given path, and print each as it arrives.
 
-Only origins that advertise the Notify capability are considered.
-The command prints the notification endpoint, the origins the director redirected to,
-and the topic to subscribe to for the path and depth you asked for.
-It does not itself open a notification connection.
+The director is asked which origin can send notifications about the path; only origins that advertise the Notify capability are considered.
+The command connects to the notification endpoint of the best of them and prints the path of each object it announces, one per line, until interrupted.
+Objects that already existed when you subscribed are not announced, and neither are deletions.
+The origin checks for changes about once a minute, so a notification can be that late.
 
 The depth is how many levels below the path you want to hear about:
 objects directly in the path are one level down, those in its subdirectories two, and so on.
 
-The topic begins with a client id, your own name for the subscription.
-Send it as the "subscription" header of the STOMP SUBSCRIBE, and use the same id to resume a subscription later.
-If you do not pick one with --client-id, a random one is made and printed.
+Each subscription has a client id, your own name for it, which is also the first part of the topic subscribed to.
+The origin keeps the notifications you have not yet received under that id, so running the command again with the same --client-id picks up where you left off.
+If you do not pick one with --client-id, a random one is made.
+Use --verbose to see it, along with the endpoint and topic, before listening starts.
+
+Output goes to standard output, one notification per line; details and status go to standard error.
+
+With --no-listen the command asks the director and prints the endpoint, the origins and the topic to subscribe to, then exits without connecting.
+That is on standard output, as JSON with --json.
 
 ```
 pelican object subscribe {object} [flags]
@@ -33,7 +38,9 @@ pelican object subscribe {object} [flags]
       --client-id string   Name for the subscription, the first part of the topic (default: a random id)
       --depth int          How many levels below the path to hear about; objects directly in the path are one level down (default 1)
   -h, --help               help for subscribe
-  -j, --json               Print results in JSON format
+  -j, --json               Print each notification as a JSON object
+      --no-listen          Print the endpoint, origins and topic, and exit without connecting
+  -v, --verbose            Before listening, print the connection endpoint and subscription parameters
 ```
 
 ### Options inherited from parent commands

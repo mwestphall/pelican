@@ -28,6 +28,7 @@ require (
 	github.com/go-ini/ini v1.67.0
 	github.com/go-jose/go-jose/v3 v3.0.3
 	github.com/go-kit/log v0.2.1
+	github.com/go-stomp/stomp/v3 v3.1.5
 	github.com/gofrs/flock v0.12.1
 	github.com/google/go-p11-kit v0.4.0
 	github.com/gorilla/csrf v1.7.3
@@ -125,7 +126,6 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v1.3.0 // indirect
 	github.com/glebarez/go-sqlite v1.23.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
-	github.com/go-stomp/stomp/v3 v3.1.5 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/gobuffalo/pop/v6 v6.1.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
