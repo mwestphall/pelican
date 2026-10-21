@@ -12,8 +12,16 @@ Ask the federation's director which origins can send notifications about objects
 created or modified under the given path.
 
 Only origins that advertise the Notify capability are considered.
-The command prints the notification endpoint and the origins the director redirected to.
+The command prints the notification endpoint, the origins the director redirected to,
+and the topic to subscribe to for the path and depth you asked for.
 It does not itself open a notification connection.
+
+The depth is how many levels below the path you want to hear about:
+objects directly in the path are one level down, those in its subdirectories two, and so on.
+
+The topic begins with a client id, your own name for the subscription.
+Send it as the "subscription" header of the STOMP SUBSCRIBE, and use the same id to resume a subscription later.
+If you do not pick one with --client-id, a random one is made and printed.
 
 ```
 pelican object subscribe {object} [flags]
@@ -22,8 +30,10 @@ pelican object subscribe {object} [flags]
 ### Options
 
 ```
-  -h, --help   help for subscribe
-  -j, --json   Print results in JSON format
+      --client-id string   Name for the subscription, the first part of the topic (default: a random id)
+      --depth int          How many levels below the path to hear about; objects directly in the path are one level down (default 1)
+  -h, --help               help for subscribe
+  -j, --json               Print results in JSON format
 ```
 
 ### Options inherited from parent commands

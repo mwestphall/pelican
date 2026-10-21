@@ -22,9 +22,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"path"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -122,24 +120,15 @@ type subscription struct {
 	since time.Time
 }
 
-// parseSubscription reads a client's subscription parameters, which have the form
-// "<depth>/<protocol>/<object path>", e.g. "2/osdf/vdc/public" asks for objects up
-// to two levels below /vdc/public.  The depth is at least 1.  The object path
-// may be empty, which means the whole namespace.
+// parseSubscription reads a client's subscription parameters, the part of its
+// topic after the client id (see server_structs.SubscriptionTopic): e.g.
+// "2/osdf/vdc/public" asks for objects up to two levels below /vdc/public.
 func parseSubscription(params string) (watchRegion, error) {
-	depthStr, rest, found := strings.Cut(params, "/")
-	if !found {
-		return watchRegion{}, errors.Errorf("subscription %q has no depth", params)
+	depth, _, objPath, err := server_structs.ParseSubscriptionParams(params)
+	if err != nil {
+		return watchRegion{}, err
 	}
-	depth, err := strconv.Atoi(depthStr)
-	if err != nil || depth < 1 {
-		return watchRegion{}, errors.Errorf("subscription %q has depth %q; it must be an integer of at least 1", params, depthStr)
-	}
-	_, objPath, found := strings.Cut(rest, "/")
-	if !found {
-		return watchRegion{}, errors.Errorf("subscription %q has no protocol", params)
-	}
-	return watchRegion{path: path.Clean("/" + objPath), depth: depth}, nil
+	return watchRegion{path: objPath, depth: depth}, nil
 }
 
 // regionsFor returns the parts of the export at prefix that subs need walked: a

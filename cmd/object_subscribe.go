@@ -41,8 +41,16 @@ var (
 created or modified under the given path.
 
 Only origins that advertise the Notify capability are considered.
-The command prints the notification endpoint and the origins the director redirected to.
-It does not itself open a notification connection.`,
+The command prints the notification endpoint, the origins the director redirected to,
+and the topic to subscribe to for the path and depth you asked for.
+It does not itself open a notification connection.
+
+The depth is how many levels below the path you want to hear about:
+objects directly in the path are one level down, those in its subdirectories two, and so on.
+
+The topic begins with a client id, your own name for the subscription.
+Send it as the "subscription" header of the STOMP SUBSCRIBE, and use the same id to resume a subscription later.
+If you do not pick one with --client-id, a random one is made and printed.`,
 		Args: cobra.ExactArgs(1),
 		RunE: subscribeMain,
 	}
@@ -50,6 +58,8 @@ It does not itself open a notification connection.`,
 
 func init() {
 	subscribeCmd.Flags().BoolP("json", "j", false, "Print results in JSON format")
+	subscribeCmd.Flags().Int("depth", 1, "How many levels below the path to hear about; objects directly in the path are one level down")
+	subscribeCmd.Flags().String("client-id", "", "Name for the subscription, the first part of the topic (default: a random id)")
 	objectCmd.AddCommand(subscribeCmd)
 }
 
@@ -59,7 +69,10 @@ func subscribeMain(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 
-	result, err := client.DoSubscribe(cmd.Context(), args[0])
+	depth, _ := cmd.Flags().GetInt("depth")
+	clientID, _ := cmd.Flags().GetString("client-id")
+
+	result, err := client.DoSubscribe(cmd.Context(), args[0], depth, clientID)
 	if err != nil {
 		return errors.Wrapf(err, "failed to subscribe to %s", args[0])
 	}
@@ -80,5 +93,8 @@ func subscribeMain(cmd *cobra.Command, args []string) error {
 	for _, origin := range result.Origins {
 		fmt.Printf("  %s\n", origin)
 	}
+	fmt.Printf("Client ID:    %s\n", result.ClientID)
+	fmt.Printf("Depth:        %d\n", result.Depth)
+	fmt.Printf("Topic:        %s\n", result.Topic)
 	return nil
 }
