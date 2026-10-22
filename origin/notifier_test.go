@@ -36,7 +36,9 @@ import (
 	logtest "github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 
+	"github.com/pelicanplatform/pelican/origin_serve"
 	"github.com/pelicanplatform/pelican/param"
 	"github.com/pelicanplatform/pelican/server_structs"
 	"github.com/pelicanplatform/pelican/server_utils"
@@ -572,6 +574,60 @@ func readStompFrame(t *testing.T, conn *websocket.Conn) stompFrame {
 	}
 }
 
+// initNotifyAuth sets up the origin's auth config with a single export, /ns,
+// whose objects are publicly readable if publicReads is set.
+func initNotifyAuth(t *testing.T, publicReads bool) {
+	t.Helper()
+	ctx, cancel := context.WithCancel(context.Background())
+	egrp := &errgroup.Group{}
+	exports := []server_utils.OriginExport{{
+		FederationPrefix: "/ns",
+		IssuerUrls:       []string{"https://issuer.example.com"},
+		Capabilities:     server_structs.Capabilities{Reads: true, PublicReads: publicReads},
+	}}
+	require.NoError(t, origin_serve.InitAuthConfig(ctx, egrp, exports))
+	t.Cleanup(func() {
+		cancel()
+		_ = egrp.Wait()
+	})
+}
+
+// A client with no token may subscribe only to what anyone may read, and one
+// with a token the origin does not accept is turned away before the upgrade.
+func TestObjectNotifierAuth(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	f := newNotifierFixture(t)
+	initNotifyAuth(t, false)
+
+	engine := gin.New()
+	require.NoError(t, mountObjectNotifier(engine, f.source))
+	server := httptest.NewServer(engine)
+	defer server.Close()
+	wsUrl := "ws" + strings.TrimPrefix(server.URL, "http") + server_structs.OriginNotifyRoute
+
+	t.Run("BadTokenRejected", func(t *testing.T) {
+		_, resp, err := websocket.DefaultDialer.Dial(wsUrl+"?authz=Bearer%20not.a.jwt", nil)
+		require.Error(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("AnonymousCannotSubscribeToPrivate", func(t *testing.T) {
+		conn, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)
+		require.NoError(t, err)
+		defer conn.Close()
+		sendStompFrame(t, conn, "CONNECT", map[string]string{"accept-version": "1.2", "host": "origin"})
+		require.Equal(t, "CONNECTED", readStompFrame(t, conn).command)
+		sendStompFrame(t, conn, "SUBSCRIBE", map[string]string{
+			"id":           "0",
+			"destination":  "client1/2/osdf/ns/dir",
+			"subscription": "client1",
+			"ack":          "client-individual",
+		})
+		assert.Equal(t, "ERROR", readStompFrame(t, conn).command)
+	})
+}
+
 // The notifier is served at its route on the origin's web server, and a client
 // that subscribes to a directory with a depth hears of objects created beneath it
 // within that depth -- and only those.  Nothing else is even walked.
@@ -581,6 +637,7 @@ func TestObjectNotifierEndToEnd(t *testing.T) {
 	f.source.interval = time.Millisecond
 	f.source.now = time.Now
 
+	initNotifyAuth(t, true)
 	engine := gin.New()
 	require.NoError(t, mountObjectNotifier(engine, f.source))
 	server := httptest.NewServer(engine)

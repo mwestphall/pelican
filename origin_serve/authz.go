@@ -519,3 +519,56 @@ func ShutdownAuthConfig() {
 		globalAuthConfig.userMapper.Shutdown()
 	}
 }
+
+// ExtractTokens returns the bearer tokens a request carries, from its
+// Authorization header and its access_token and authz query parameters.
+func ExtractTokens(r *http.Request) []string {
+	return extractTokens(r)
+}
+
+// VerifyTokens checks each of tokens against the origin's trusted issuers and
+// exports.  It returns the tokens that passed, and the local user the first of
+// them maps to.  Both are empty if none passed, or if the auth config has not
+// been initialized.
+func VerifyTokens(tokens []string) (user string, valid []string) {
+	ac := GetAuthConfig()
+	if ac == nil {
+		return "", nil
+	}
+	for _, tok := range tokens {
+		item := ac.tokenAuthz.Get(tok)
+		if item == nil {
+			continue
+		}
+		if user == "" && item.Value().UserInfo != nil {
+			user = item.Value().UserInfo.User
+		}
+		valid = append(valid, tok)
+	}
+	return user, valid
+}
+
+// AuthorizeRead reports whether a caller holding tokens may read resource, a
+// federation path: either an export with public reads covers it, or one of
+// the tokens carries a storage.read scope that does.  Tokens are expected to
+// have passed VerifyTokens; an unverified token authorizes nothing.
+func AuthorizeRead(resource string, tokens []string) bool {
+	ac := GetAuthConfig()
+	if ac == nil {
+		return false
+	}
+	resource = path.Clean(resource)
+	if exports := ac.exports.Load(); exports != nil {
+		for _, export := range *exports {
+			if export.Capabilities.PublicReads && hasPathPrefix(resource, export.FederationPrefix) {
+				return true
+			}
+		}
+	}
+	for _, tok := range tokens {
+		if ac.authorize(token_scopes.Wlcg_Storage_Read, resource, tok) {
+			return true
+		}
+	}
+	return false
+}

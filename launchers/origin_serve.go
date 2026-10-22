@@ -380,6 +380,11 @@ func OriginServeFinish(ctx context.Context, egrp *errgroup.Group, engine *gin.En
 	// Announce new and modified objects to subscribers.  The notifier lists the
 	// origin's own XRootD endpoint, which was launched before the web server.
 	if useXRootD && param.Origin_EnableNotifications.GetBool() {
+		// XRootD does its own authorization for transfers, so the auth config
+		// the notifier checks subscriptions against is not otherwise set up.
+		if err := origin_serve.InitAuthConfig(ctx, egrp, originExports); err != nil {
+			return errors.Wrap(err, "failed to initialize the auth config for the object notifier")
+		}
 		if err := origin.LaunchObjectNotifier(ctx, egrp, engine); err != nil {
 			return errors.Wrap(err, "failed to launch the object notifier")
 		}

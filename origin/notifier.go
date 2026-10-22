@@ -36,6 +36,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/pelicanplatform/pelican/client"
+	"github.com/pelicanplatform/pelican/origin_serve"
 	"github.com/pelicanplatform/pelican/param"
 	"github.com/pelicanplatform/pelican/server_structs"
 	"github.com/pelicanplatform/pelican/server_utils"
@@ -446,10 +447,58 @@ func (s *objectEventSource) walkOnce(ctx context.Context) error {
 	return nil
 }
 
+// notifyCredentials is the Principal.Data of a connection: the verified tokens
+// its upgrade request carried, which may be none.
+type notifyCredentials []string
+
+// notifyAuthenticator admits a connection if every token it presents is valid.
+// A connection with no token is admitted anonymously, and can then subscribe
+// only to what is publicly readable.
+type notifyAuthenticator struct{}
+
+func (notifyAuthenticator) Authenticate(w http.ResponseWriter, r *http.Request) (notificationserver.Principal, bool) {
+	tokens := origin_serve.ExtractTokens(r)
+	if len(tokens) == 0 {
+		return notificationserver.Principal{}, true
+	}
+	user, valid := origin_serve.VerifyTokens(tokens)
+	if len(valid) == 0 {
+		w.Header().Set("WWW-Authenticate", "Bearer")
+		http.Error(w, "the token presented is not valid for this origin", http.StatusUnauthorized)
+		return notificationserver.Principal{}, false
+	}
+	if user == "" {
+		user = "authenticated"
+	}
+	return notificationserver.Principal{Name: user, Data: notifyCredentials(valid)}, true
+}
+
+// notifyAuthorizer lets a connection subscribe to a topic only if it could read
+// the topic's object path from the origin.
+type notifyAuthorizer struct{}
+
+func (notifyAuthorizer) Authorize(p notificationserver.Principal, destination string) bool {
+	// The destination is the topic, which starts with the client id.
+	_, params, found := strings.Cut(strings.TrimPrefix(destination, "/"), "/")
+	if !found {
+		return false
+	}
+	_, _, objPath, err := server_structs.ParseSubscriptionParams(params)
+	if err != nil {
+		return false
+	}
+	tokens, _ := p.Data.(notifyCredentials)
+	return origin_serve.AuthorizeRead(objPath, tokens)
+}
+
 // mountObjectNotifier serves the notification server fed by source on engine at
 // server_structs.OriginNotifyRoute.
 func mountObjectNotifier(engine *gin.Engine, source eventsource.EventSource) error {
-	handler, err := notificationserver.New(notificationserver.NotificationServerArgs{EventSource: source})
+	handler, err := notificationserver.New(notificationserver.NotificationServerArgs{
+		EventSource:   source,
+		Authenticator: notifyAuthenticator{},
+		Authorizer:    notifyAuthorizer{},
+	})
 	if err != nil {
 		return errors.Wrap(err, "failed to create the notification server")
 	}

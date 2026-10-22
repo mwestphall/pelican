@@ -846,6 +846,10 @@ github.com/scaleway/scaleway-sdk-go v1.0.0-beta.21 h1:yWfiTPwYxB0l5fGMhl/G+liULu
 github.com/scaleway/scaleway-sdk-go v1.0.0-beta.21/go.mod h1:fCa7OJZ/9DRTnOKmxvT6pn+LPWUptQAmHF/SBJUGEcg=
 github.com/sci-ndp/pelican-client-protocol/stomp-server-go v0.0.0-20261021204524-9f61918000b7 h1:VFwKs65Rsteli73qNTXrMyn+rWayaLaAp6tu4yEKcY0=
 github.com/sci-ndp/pelican-client-protocol/stomp-server-go v0.0.0-20261021204524-9f61918000b7/go.mod h1:L408jAbrWxw3AzvPoqMfaXyVU/Uzu08rF4sKhuUkpv8=
+github.com/sci-ndp/pelican-client-protocol/stomp-server-go v0.0.0-20261022161218-608660d5d55a h1:Q1sR0KZd6/p7wxAP0ebJX+pAHqosZYLVlgBXUEDpm+U=
+github.com/sci-ndp/pelican-client-protocol/stomp-server-go v0.0.0-20261022161218-608660d5d55a/go.mod h1:L408jAbrWxw3AzvPoqMfaXyVU/Uzu08rF4sKhuUkpv8=
+github.com/sci-ndp/pelican-client-protocol/stomp-server-go v0.0.0-20261022170228-060ef5f032e6 h1:T3eP9QoyEnJRnOLK3RRbl/8MI4vFo5cCXG7mA4TWxMo=
+github.com/sci-ndp/pelican-client-protocol/stomp-server-go v0.0.0-20261022170228-060ef5f032e6/go.mod h1:L408jAbrWxw3AzvPoqMfaXyVU/Uzu08rF4sKhuUkpv8=
 github.com/seatgeek/logrus-gelf-formatter v0.0.0-20210414080842-5b05eb8ff761 h1:0b8DF5kR0PhRoRXDiEEdzrgBc8UqVY4JWLkQJCRsLME=
 github.com/seatgeek/logrus-gelf-formatter v0.0.0-20210414080842-5b05eb8ff761/go.mod h1:/THDZYi7F/BsVEcYzYPqdcWFQ+1C2InkawTKfLOAnzg=
 github.com/segmentio/asm v1.2.0 h1:9BQrFxC+YOHJlTlHGkTrFWf59nbL3XnCoFLTwDCI7ys=
