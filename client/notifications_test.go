@@ -265,3 +265,52 @@ func TestNotifiedPath(t *testing.T) {
 	assert.Equal(t, "/with space/and \"quote\"", notifiedPath([]byte(`"/with space/and \"quote\""`)))
 	assert.Equal(t, "/ns/plain", notifiedPath([]byte("/ns/plain")), "anything else is kept as it is")
 }
+
+// A subscriber with a credential presents it as a bearer token when it connects,
+// and one without presents nothing.
+func TestListenPresentsItsToken(t *testing.T) {
+	f := newNotifyFixture(t)
+	var mu sync.Mutex
+	var seen []string
+	inner := f.server.Config.Handler
+	f.server.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		seen = append(seen, r.Header.Get("Authorization"))
+		mu.Unlock()
+		inner.ServeHTTP(w, r)
+	})
+	connected := func(r SubscribeResult) {
+		l := startListening(t, r)
+		defer l.cancel()
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+			return len(seen) > 0
+		}, 10*time.Second, 10*time.Millisecond)
+	}
+
+	withToken := f.result("c1", "c1/1/pelican/ns")
+	withToken.token = "my-token"
+	connected(withToken)
+	mu.Lock()
+	assert.Equal(t, "Bearer my-token", seen[0])
+	seen = nil
+	mu.Unlock()
+
+	connected(f.result("c2", "c2/1/pelican/ns"))
+	mu.Lock()
+	assert.Equal(t, "", seen[0])
+	mu.Unlock()
+}
+
+// An origin that turns the credential away says so, rather than reporting a
+// failure to connect.
+func TestListenReportsARefusedCredential(t *testing.T) {
+	f := newNotifyFixture(t)
+	f.server.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "no", http.StatusUnauthorized)
+	})
+	err := f.result("c1", "c1/1/pelican/ns").Listen(context.Background(), func(Notification) {})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "refused the credential")
+}

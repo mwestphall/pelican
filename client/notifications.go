@@ -21,6 +21,7 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"time"
 
 	"github.com/go-stomp/stomp/v3"
@@ -74,8 +75,15 @@ func (r SubscribeResult) Listen(ctx context.Context, onNotification func(Notific
 	if transport.TLSClientConfig != nil {
 		dialer.TLSClientConfig = transport.TLSClientConfig.Clone()
 	}
-	ws, _, err := dialer.DialContext(ctx, r.NotifyUrl, nil)
+	var header http.Header
+	if r.token != "" {
+		header = http.Header{"Authorization": []string{"Bearer " + r.token}}
+	}
+	ws, resp, err := dialer.DialContext(ctx, r.NotifyUrl, header)
 	if err != nil {
+		if resp != nil && (resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden) {
+			return errors.Wrapf(err, "the origin's notification endpoint %s refused the credential (HTTP %d)", r.NotifyUrl, resp.StatusCode)
+		}
 		return errors.Wrapf(err, "failed to connect to the origin's notification endpoint %s", r.NotifyUrl)
 	}
 

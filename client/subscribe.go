@@ -26,6 +26,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
+	"github.com/pelicanplatform/pelican/config"
 	"github.com/pelicanplatform/pelican/pelican_url"
 	"github.com/pelicanplatform/pelican/server_structs"
 )
@@ -52,6 +53,10 @@ type SubscribeResult struct {
 	// depth: "<client id>/<depth>/<protocol>/<path>".  The SUBSCRIBE's
 	// "subscription" header must be the client id.
 	Topic string `json:"topic"`
+
+	// token is the credential Listen presents to the origin, if there is one.  It
+	// is unexported so that it is never printed along with the rest.
+	token string
 }
 
 // DoSubscribe asks the director which origins can notify a subscriber about
@@ -63,7 +68,14 @@ type SubscribeResult struct {
 // Like a listing it is a question for origins only; the director answers with
 // redirects and the notify-url of the best origin, and fails if no origin exporting
 // the path advertises the Notify capability.
-func DoSubscribe(ctx context.Context, remoteObject string, depth int, clientID string) (SubscribeResult, error) {
+//
+// Credentials are found as they are for a listing: WithToken or
+// WithTokenLocation name one, and otherwise the environment is searched.  If the
+// namespace requires a token and none is found, one is acquired from the
+// issuer unless WithAcquireToken(false) is given.  A namespace that does not
+// require a token is subscribed to anonymously unless a credential is found
+// or named; naming one that cannot be read is an error.
+func DoSubscribe(ctx context.Context, remoteObject string, depth int, clientID string, options ...TransferOption) (SubscribeResult, error) {
 	if clientID == "" {
 		clientID = uuid.NewString()
 	}
@@ -96,7 +108,12 @@ func DoSubscribe(ctx context.Context, remoteObject string, depth int, clientID s
 	for _, server := range dirResp.ObjectServers {
 		origins = append(origins, originOf(server))
 	}
+	token, err := subscriptionToken(pUrl, &dirResp, options)
+	if err != nil {
+		return SubscribeResult{}, err
+	}
 	return SubscribeResult{
+		token:        token,
 		Namespace:    dirResp.XPelNsHdr.Namespace,
 		RequireToken: dirResp.XPelNsHdr.RequireToken,
 		NotifyUrl:    dirResp.XPelNsHdr.NotifyUrl.String(),
@@ -105,6 +122,41 @@ func DoSubscribe(ctx context.Context, remoteObject string, depth int, clientID s
 		Depth:        depth,
 		Topic:        topic,
 	}, nil
+}
+
+// subscriptionToken finds the credential to subscribe with, or "" to subscribe
+// anonymously; see DoSubscribe.
+func subscriptionToken(pUrl *pelican_url.PelicanURL, dirResp *server_structs.DirectorResponse, options []TransferOption) (string, error) {
+	generator := NewTokenGenerator(pUrl, dirResp, config.TokenRead, true)
+	explicit := false
+	for _, option := range options {
+		switch option.Ident() {
+		case identTransferOptionTokenLocation{}:
+			location := option.Value().(string)
+			generator.SetTokenLocation(location)
+			explicit = explicit || location != ""
+		case identTransferOptionAcquireToken{}:
+			generator.EnableAcquire = option.Value().(bool)
+		case identTransferOptionToken{}:
+			tok := option.Value().(string)
+			generator.SetToken(tok)
+			explicit = explicit || tok != ""
+		}
+	}
+	required := dirResp.XPelNsHdr.RequireToken
+	if !required {
+		// Use what is named or lying around, but do not go through an OAuth
+		// flow for data anyone may read.
+		generator.EnableAcquire = false
+	}
+	tok, err := generator.Get()
+	if err != nil {
+		if !required && !explicit {
+			return "", nil
+		}
+		return "", errors.Wrapf(err, "failed to get a token to subscribe to %s", pUrl.Path)
+	}
+	return tok, nil
 }
 
 // subscriptionTopicFor returns the topic that subscribes the client named

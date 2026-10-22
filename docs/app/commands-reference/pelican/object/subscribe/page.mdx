@@ -23,6 +23,10 @@ The origin keeps the notifications you have not yet received under that id, so r
 If you do not pick one with --client-id, a random one is made.
 Use --verbose to see it, along with the endpoint and topic, before listening starts.
 
+If the path is not publicly readable, the origin requires a token with read access to it, found the same way as for other object commands:
+the file given with --token, otherwise the usual environment variables and locations, otherwise one acquired from the namespace's issuer.
+For a public path a token is sent only if one is given or found.
+
 Output goes to standard output, one notification per line; details and status go to standard error.
 
 With --no-listen the command asks the director and prints the endpoint, the origins and the topic to subscribe to, then exits without connecting.
@@ -40,6 +44,7 @@ pelican object subscribe {object} [flags]
   -h, --help               help for subscribe
   -j, --json               Print each notification as a JSON object
       --no-listen          Print the endpoint, origins and topic, and exit without connecting
+  -t, --token string       Token file to use to subscribe
   -v, --verbose            Before listening, print the connection endpoint and subscription parameters
 ```
 

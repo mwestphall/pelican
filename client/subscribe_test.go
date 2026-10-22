@@ -20,10 +20,13 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -188,4 +191,52 @@ func TestSubscriptionTopicForUsesTheUrlScheme(t *testing.T) {
 		require.NoError(t, err, tc.rawUrl)
 		assert.Equal(t, tc.expected, topic, tc.rawUrl)
 	}
+}
+
+// The credential is found as for other commands: named, or else discovered, and
+// a subscription to a public namespace goes without one if there is none.
+func TestDoSubscribeToken(t *testing.T) {
+	d := newSubscribeDirector(t)
+	// Keep the developer's own credentials out of it.
+	for _, env := range []string{"BEARER_TOKEN", "BEARER_TOKEN_FILE", "XDG_RUNTIME_DIR", "_CONDOR_CREDS", "TOKEN"} {
+		t.Setenv(env, "")
+	}
+	t.Setenv("HOME", t.TempDir())
+	subscribe := func(options ...TransferOption) (SubscribeResult, error) {
+		return DoSubscribe(context.Background(), d.url(t, "/ns/dir"), 1, "c", options...)
+	}
+
+	t.Run("NoneFoundIsAnonymous", func(t *testing.T) {
+		result, err := subscribe()
+		require.NoError(t, err)
+		assert.Empty(t, result.token)
+	})
+	t.Run("TokenGiven", func(t *testing.T) {
+		result, err := subscribe(WithToken("given-token"))
+		require.NoError(t, err)
+		assert.Equal(t, "given-token", result.token)
+	})
+	t.Run("TokenFile", func(t *testing.T) {
+		file := filepath.Join(t.TempDir(), "token")
+		require.NoError(t, os.WriteFile(file, []byte("file-token\n"), 0600))
+		result, err := subscribe(WithTokenLocation(file))
+		require.NoError(t, err)
+		assert.Equal(t, "file-token", result.token)
+	})
+	t.Run("NamedFileThatIsMissingIsAnError", func(t *testing.T) {
+		_, err := subscribe(WithTokenLocation(filepath.Join(t.TempDir(), "absent")))
+		require.Error(t, err)
+	})
+	t.Run("EmptyLocationIsNotNaming", func(t *testing.T) {
+		result, err := subscribe(WithTokenLocation(""))
+		require.NoError(t, err)
+		assert.Empty(t, result.token)
+	})
+	t.Run("TokenIsNotInTheJSON", func(t *testing.T) {
+		result, err := subscribe(WithToken("secret-token"))
+		require.NoError(t, err)
+		data, err := json.Marshal(result)
+		require.NoError(t, err)
+		assert.NotContains(t, string(data), "secret-token")
+	})
 }

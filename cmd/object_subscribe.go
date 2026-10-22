@@ -59,6 +59,10 @@ The origin keeps the notifications you have not yet received under that id, so r
 If you do not pick one with --client-id, a random one is made.
 Use --verbose to see it, along with the endpoint and topic, before listening starts.
 
+If the path is not publicly readable, the origin requires a token with read access to it, found the same way as for other object commands:
+the file given with --token, otherwise the usual environment variables and locations, otherwise one acquired from the namespace's issuer.
+For a public path a token is sent only if one is given or found.
+
 Output goes to standard output, one notification per line; details and status go to standard error.
 
 With --no-listen the command asks the director and prints the endpoint, the origins and the topic to subscribe to, then exits without connecting.
@@ -69,6 +73,7 @@ That is on standard output, as JSON with --json.`,
 )
 
 func init() {
+	subscribeCmd.Flags().StringP("token", "t", "", "Token file to use to subscribe")
 	subscribeCmd.Flags().BoolP("json", "j", false, "Print each notification as a JSON object")
 	subscribeCmd.Flags().Int("depth", 1, "How many levels below the path to hear about; objects directly in the path are one level down")
 	subscribeCmd.Flags().String("client-id", "", "Name for the subscription, the first part of the topic (default: a random id)")
@@ -88,8 +93,9 @@ func subscribeMain(cmd *cobra.Command, args []string) error {
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	asJSON, _ := cmd.Flags().GetBool("json")
 	noListen, _ := cmd.Flags().GetBool("no-listen")
+	tokenLocation, _ := cmd.Flags().GetString("token")
 
-	result, err := client.DoSubscribe(cmd.Context(), args[0], depth, clientID)
+	result, err := client.DoSubscribe(cmd.Context(), args[0], depth, clientID, client.WithTokenLocation(tokenLocation))
 	if err != nil {
 		return errors.Wrapf(err, "failed to subscribe to %s", args[0])
 	}
