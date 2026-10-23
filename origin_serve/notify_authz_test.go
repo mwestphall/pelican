@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/jellydator/ttlcache/v3"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -71,13 +72,15 @@ func TestNotifyAuthorization(t *testing.T) {
 	forged := createTestToken(t, otherKey, issuer, "mallory", nil, "storage.read:/")
 
 	t.Run("ValidTokenVerifies", func(t *testing.T) {
-		user, valid := VerifyTokens([]string{forged, readDir})
+		user, valid, expiry := VerifyTokens([]string{forged, readDir})
 		assert.Equal(t, "alice", user)
 		assert.Equal(t, []string{readDir}, valid)
+		assert.WithinDuration(t, time.Now().Add(time.Hour), expiry, 10*time.Second)
 	})
 	t.Run("ForgedTokenDoesNot", func(t *testing.T) {
-		_, valid := VerifyTokens([]string{forged})
+		_, valid, expiry := VerifyTokens([]string{forged})
 		assert.Empty(t, valid)
+		assert.True(t, expiry.IsZero())
 	})
 	t.Run("ScopeCoversPath", func(t *testing.T) {
 		assert.True(t, AuthorizeRead("/private/dir", []string{readDir}))
@@ -109,7 +112,7 @@ func TestNotifyAuthorizationUninitialized(t *testing.T) {
 	old := globalAuthConfig
 	globalAuthConfig = nil
 	t.Cleanup(func() { globalAuthConfig = old })
-	user, valid := VerifyTokens([]string{"x"})
+	user, valid, _ := VerifyTokens([]string{"x"})
 	assert.Empty(t, user)
 	assert.Empty(t, valid)
 	assert.False(t, AuthorizeRead("/public/x", nil))

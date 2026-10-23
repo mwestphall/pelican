@@ -68,6 +68,8 @@ type (
 		Scopes   []token_scopes.ResourceScope
 		UserInfo *userInfo
 		Issuer   string
+		// Expiry is the token's exp claim; zero if it has none.
+		Expiry time.Time
 	}
 
 	acls []token_scopes.ResourceScope
@@ -436,9 +438,12 @@ func (ac *authConfig) loader(cache *ttlcache.Cache[string, cachedTokenInfo], tok
 	}
 
 	// Extract issuer from the token (claims are unverified at this point; used only for logging)
+	// and its expiry (getAcls has already verified the signature and validity).
 	issuer := ""
+	var expiry time.Time
 	if tok, err := token.UnsafeParseClaims(tokenStr); err == nil {
 		issuer = tok.Issuer()
+		expiry = tok.Expiration()
 	}
 
 	// Extract user information from the token at cache time (only once)
@@ -454,6 +459,7 @@ func (ac *authConfig) loader(cache *ttlcache.Cache[string, cachedTokenInfo], tok
 		Scopes:   acls,
 		UserInfo: userInfo,
 		Issuer:   issuer,
+		Expiry:   expiry,
 	}
 	item := cache.Set(tokenStr, info, ttlcache.DefaultTTL)
 	return item
@@ -527,25 +533,36 @@ func ExtractTokens(r *http.Request) []string {
 }
 
 // VerifyTokens checks each of tokens against the origin's trusted issuers and
-// exports.  It returns the tokens that passed, and the local user the first of
-// them maps to.  Both are empty if none passed, or if the auth config has not
-// been initialized.
-func VerifyTokens(tokens []string) (user string, valid []string) {
+// exports.  It returns the tokens that passed, the local user the first of
+// them maps to, and the time the last of them expires, which is zero if any of
+// them has no exp claim.  All are empty if none passed, or if the auth config
+// has not been initialized.
+func VerifyTokens(tokens []string) (user string, valid []string, expiry time.Time) {
 	ac := GetAuthConfig()
 	if ac == nil {
-		return "", nil
+		return "", nil, time.Time{}
 	}
+	neverExpires := false
 	for _, tok := range tokens {
 		item := ac.tokenAuthz.Get(tok)
 		if item == nil {
 			continue
 		}
-		if user == "" && item.Value().UserInfo != nil {
-			user = item.Value().UserInfo.User
+		info := item.Value()
+		if user == "" && info.UserInfo != nil {
+			user = info.UserInfo.User
 		}
 		valid = append(valid, tok)
+		if info.Expiry.IsZero() {
+			neverExpires = true
+		} else if info.Expiry.After(expiry) {
+			expiry = info.Expiry
+		}
 	}
-	return user, valid
+	if neverExpires {
+		expiry = time.Time{}
+	}
+	return user, valid, expiry
 }
 
 // AuthorizeRead reports whether a caller holding tokens may read resource, a

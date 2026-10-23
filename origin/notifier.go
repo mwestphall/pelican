@@ -461,7 +461,7 @@ func (notifyAuthenticator) Authenticate(w http.ResponseWriter, r *http.Request) 
 	if len(tokens) == 0 {
 		return notificationserver.Principal{}, true
 	}
-	user, valid := origin_serve.VerifyTokens(tokens)
+	user, valid, expiry := origin_serve.VerifyTokens(tokens)
 	if len(valid) == 0 {
 		w.Header().Set("WWW-Authenticate", "Bearer")
 		http.Error(w, "the token presented is not valid for this origin", http.StatusUnauthorized)
@@ -470,7 +470,7 @@ func (notifyAuthenticator) Authenticate(w http.ResponseWriter, r *http.Request) 
 	if user == "" {
 		user = "authenticated"
 	}
-	return notificationserver.Principal{Name: user, Data: notifyCredentials(valid)}, true
+	return notificationserver.Principal{Name: user, Data: notifyCredentials(valid), Expiry: expiry}, true
 }
 
 // notifyAuthorizer lets a connection subscribe to a topic only if it could read
